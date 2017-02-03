@@ -10,45 +10,48 @@ const offset = [
 ]
 
 function processData(input) {
-    const fileStream = fs.createReadStream(
+    const fileStream = fs.readFile(
         path.resolve(__dirname, './trainingdata.txt'),
         {
-            autoClose: true,
             encoding: 'ascii',
-            flags: 'r'
+            flag: 'r'
+        },
+        (err, data) => {
+            if (!err) {
+                let splitedLine, team, current
+
+                data.split('\n').forEach((line) => {
+                    if (line.length <= 0) {
+                        return;
+                    }
+
+                    splitedLine = line.split(',')
+
+                    if (splitedLine[splitedLine.length - 1] === '1') {
+                        current = team1
+                    } else {
+                        current = team2
+                    }
+
+                    team = splitedLine.slice(offset[current][0], offset[current][1])
+
+                    team.forEach((name) => {
+                        if (predictions[current].has(name)) {
+                            predictions[current].set(name, predictions[current].get(name) + 1)
+                        } else {
+                            predictions[current].set(name, 1)
+                        }
+                    })
+                })
+
+                processQueries()
+            } else {
+                throw err
+            }
         }
     )
 
-    fileStream.on('data', (data) => {
-        let dataString = Buffer.from(data).toString('ascii')
-        let splitedLine, team, current
-
-        dataString.split('\n').forEach((line) => {
-            if (line.length <= 0) {
-                return;
-            }
-
-            splitedLine = line.split(',')
-
-            if (splitedLine[splitedLine.length - 1] === '1') {
-                current = team1
-            } else {
-                current = team2
-            }
-
-            team = splitedLine.slice(offset[current][0], offset[current][1])
-
-            team.forEach((name) => {
-                if (predictions[current].has(name)) {
-                    predictions[current].set(name, predictions[current].get(name) + 1)
-                } else {
-                    predictions[current].set(name, 1)
-                }
-            })
-        })
-    })
-
-    fileStream.on('end', () => {
+    function processQueries() {
         const inputParts = input.split('\n')
         const queries = parseInt(inputParts[0], 10)
         let teamA, teamB, round
@@ -82,7 +85,7 @@ function processData(input) {
                 process.stdout.write('1\n')
             }
         })
-    })
+    }
 }
 
 process.stdin.resume();
