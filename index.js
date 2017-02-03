@@ -14,7 +14,7 @@ function run() {
     ]).then((ioFiles) => {
         const [inputFiles, outputFiles] = ioFiles;
         let child, inputStream, outputStream;
-        let outputBuffer, fileBuffer, temp;
+        let outputBuffer, fileBuffer;
 
         if (inputFiles.length <= 0 || outputFiles.length <= 0) {
             console.error(new Error('not enough test files'))
@@ -62,29 +62,25 @@ function run() {
             })
 
             child.on('error', (err) => {
+                log('ERROR')
                 console.error(err)
             })
 
             child.on('disconnet', () => {
-                console.info(`child #${child.pid} disconneted`)
+                log('DISCONNECTED')
             })
 
             child.stderr.on('data', (data) => {
-                console.log(`child #${child.pid} sent error`)
+                log('ERROR')
                 console.log(Buffer.from(data).toString('ascii'))
             })
 
             child.stdout.on('data', (data) => {
-                temp = Buffer.from(data)
-
                 if (outputBuffer !== undefined) {
-                    outputBuffer = Buffer.concat([outputBuffer, temp])
+                    outputBuffer = Buffer.concat([outputBuffer, Buffer.from(data)])
                 } else {
-                    outputBuffer = temp
+                    outputBuffer = Buffer.from(data)
                 }
-
-                console.log(`child #${child.pid} sent`)
-                console.log(temp.toString('ascii'))
             })
 
             child.stdout.on('end', () => {
@@ -99,15 +95,26 @@ function run() {
                 }
 
                 if (fileBuffer.compare(outputBuffer) !== 0) {
-                    console.log(`child #${child.pid} wrong anwser`)
+                    log('FAIL')
                 } else {
-                    console.log(`child #${child.pid} correct anwser`)
+                    log('PASS')
                 }
 
-                console.log('given output')
+                log('given output')
                 console.log(outputBuffer.toString('ascii'))
-                console.log('expected output')
-                console.log(fileBuffer.toString('ascii'))
+                log('for expected output see this file:', getFilePath(outputFiles[index]))
+
+                if (child.connected) {
+                    child.kill('SIGTERM')
+                }
+            }
+
+            function log(...msg) {
+                console.log(`[${child.pid} | ${Date.now()} | ${getFilePath(file)}] ${msg.join(' ')}`)
+            }
+
+            function getFilePath(filePath) {
+                return filePath.slice(__dirname.length + 1)
             }
         });
     }, (err) => {
