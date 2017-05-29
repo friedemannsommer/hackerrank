@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const cp = require('child_process')
 
-const current = path.resolve(__dirname, 'dota-2-game-prediction')
+const current = path.resolve(__dirname, 'game-of-stones-1')
 const output = path.resolve(current, 'output')
 const app = path.resolve(current, 'index.js')
 const input = path.resolve(current, 'input')
@@ -110,7 +110,7 @@ function run() {
             }
 
             function log(...msg) {
-                console.log(`[${child.pid} | ${Date.now()} | ${getFilePath(file)}] ${msg.join(' ')}`)
+                console.log(`[${child.pid} | ${getFilePath(file)}] ${msg.join(' ')}`)
             }
 
             function getFilePath(filePath) {
