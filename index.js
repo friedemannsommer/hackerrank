@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const cp = require('child_process')
 
-const current = path.resolve(__dirname, 'game-of-stones-1')
+const current = path.resolve(__dirname, 'birthday-cake-candles')
 const output = path.resolve(current, 'output')
 const app = path.resolve(current, 'index.js')
 const input = path.resolve(current, 'input')
@@ -96,13 +96,12 @@ function run() {
 
                 if (fileBuffer.compare(outputBuffer) !== 0) {
                     log('FAIL')
+                    log('given output')
+                    console.log(outputBuffer.toString('ascii'))
+                    log('for expected output see this file:', getFilePath(outputFiles[index]))
                 } else {
                     log('PASS')
                 }
-
-                log('given output')
-                console.log(outputBuffer.toString('ascii'))
-                log('for expected output see this file:', getFilePath(outputFiles[index]))
 
                 if (child.connected) {
                     child.kill('SIGTERM')
